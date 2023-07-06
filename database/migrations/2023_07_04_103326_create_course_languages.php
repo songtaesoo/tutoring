@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('course_languages', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('course_id')->unsigned();
-            $table->bigInteger('language_id')->unsigned();
+            $table->bigInteger('course_id')->unsigned()->nullable();
+            $table->bigInteger('language_id')->unsigned()->nullable();
             $table->string('type', 20)->nullable()->comment('수업 언어타입');
             $table->string('description', 1000)->nullable()->comment('비고');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
@@ -27,7 +27,7 @@ return new class extends Migration
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('language_id')->references('id')->on('language')
+            $table->foreign('language_id')->references('id')->on('languages')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });

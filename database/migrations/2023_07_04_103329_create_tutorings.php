@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tutoring', function (Blueprint $table) {
+        Schema::create('tutorings', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('student_user_id')->unsigned()->nullable()->comment('학생 회원ID');
             $table->bigInteger('tutor_user_id')->unsigned()->nullable()->comment('튜터 회원ID');
@@ -26,11 +26,11 @@ return new class extends Migration
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
 
-            $table->foreign('student_user_id')->references('id')->on('users')
+            $table->foreign('student_user_id')->references('user_id')->on('students')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('tutor_user_id')->references('id')->on('users')
+            $table->foreign('tutor_user_id')->references('user_id')->on('tutors')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
@@ -47,6 +47,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tutoring');
+        Schema::dropIfExists('tutorings');
     }
 };

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('course_types', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('course_id')->unsigned();
+            $table->bigInteger('course_id')->unsigned()->nullable();
             $table->string('name', 20)->nullable()->comment('수업 종류명');
             $table->string('type', 20)->nullable()->comment('종류');
             $table->string('description', 1000)->nullable()->comment('비고');
