@@ -13,21 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('students', function (Blueprint $table) {
+        Schema::create('languages', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('user_id')->unsigned();
-            $table->string('name', 10)->nullable()->comment('학생명');
-            $table->string('phone', 15)->nullable()->comment('연락처');
+            $table->string('name', 20)->nullable()->comment('지원언어명');
+            $table->string('code', 10)->nullable()->comment('국가코드');
+            $table->string('description', 1000)->nullable()->comment('비고');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
-
-            $table->foreign('user_id')->references('id')->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
         });
     }
-
 
     /**
      * Reverse the migrations.
@@ -36,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('languages');
     }
 };

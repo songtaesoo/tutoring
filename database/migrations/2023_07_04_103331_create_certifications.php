@@ -13,15 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tutors', function (Blueprint $table) {
+        Schema::create('certifications', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('user_id')->unsigned();
-            $table->bigInteger('language_id')->unsigned();
-            $table->string('name', 10)->nullable()->comment('이름');
-            $table->string('phone', 20)->nullable()->comment('연락처');
-            $table->string('country', 20)->nullable()->comment('국적');
-            $table->string('type', 10)->nullable()->comment('타입'); //global or native
-            $table->text('description')->nullable()->comment('강사소개');
+            $table->bigInteger('user_id')->unsigned()->nullable()->comment('회원ID');
+            $table->bigInteger('config_id')->unsigned()->nullable()->comment('분류ID');
+            $table->text('category')->comment('값');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
@@ -30,7 +26,7 @@ return new class extends Migration
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('language_id')->references('id')->on('languages')
+            $table->foreign('config_id')->references('id')->on('app_configs')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });
@@ -43,6 +39,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tutors');
+        Schema::dropIfExists('certifications');
     }
 };

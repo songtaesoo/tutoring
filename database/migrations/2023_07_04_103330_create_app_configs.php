@@ -13,21 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('students', function (Blueprint $table) {
+        Schema::create('app_configs', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('user_id')->unsigned();
-            $table->string('name', 10)->nullable()->comment('학생명');
-            $table->string('phone', 15)->nullable()->comment('연락처');
+            $table->string('category', 100)->comment('분류');
+            $table->string('value', 100)->comment('값');
+            $table->string('text', 100)->comment('텍스트');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
-
-            $table->foreign('user_id')->references('id')->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
         });
     }
-
 
     /**
      * Reverse the migrations.
@@ -36,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('students');
+        Schema::dropIfExists('app_configs');
     }
 };
