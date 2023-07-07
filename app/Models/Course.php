@@ -29,7 +29,7 @@ class Course extends Model
         return $this->hasOne('App\Models\CourseLanguage');
     }
 
-    public function types(){
+    public function type(){
         return $this->hasOne('App\Models\CourseType');
     }
 

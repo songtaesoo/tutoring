@@ -53,4 +53,8 @@ class User extends Authenticatable
     public function certifications(){
         return $this->hasMany('App\Models\Certification');
     }
+
+    public function sendEmailNotification(){
+        return true;
+    }
 }

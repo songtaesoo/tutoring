@@ -17,3 +17,12 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::group(['middleware' => 'auth:api', 'prefix' => 'api'], function (){
+    //수강과정
+    Route::get('/courses', [CourseController::class, 'index']); //구매가능 수강과정 목록
+
+    //수업
+    Route::post('/tutoring/start', [TutoringController::class, 'tutoringStart']); //수업시작
+    Route::post('/tutoring/end', [TutoringController::class, 'tutoringEnd']);     //수업종료
+});
