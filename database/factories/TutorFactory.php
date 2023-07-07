@@ -3,6 +3,9 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\User;
+use App\Models\SupportLanguage;
+use App\Models\SupportType;
 
 class TutorFactory extends Factory
 {
@@ -14,7 +17,14 @@ class TutorFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'user_id' => User::inRandomOrder()->where('role', 'tutor')->first()->id,
+            'language_id' => SupportLanguage::inRandomOrder()->first()->id,
+            'type_id' => SupportType::inRandomOrder()->first()->id,
+            'name' => $this->faker->name,
+            'phone' => $this->faker->cellPhoneNumber,
+            'country' => '',
+            'type' => randomElement(['Global', 'Native']),
+            'description' => ''
         ];
     }
 }

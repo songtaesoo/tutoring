@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
-class Tutoring extends Model
+class SupportType extends Model
 {
     use HasFactory;
 
-    protected $table = 'tutorings';
+    protected $table = 'support_types';
 
     public $timestamps = true;
 

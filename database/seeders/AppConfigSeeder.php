@@ -13,6 +13,15 @@ class AppConfigSeeder extends Seeder
      */
     public function run()
     {
-        //
+        $items = [[
+            'id' => 1,
+            'category' => 'certifications',
+            'value' => 'aos_device_receive_token',
+            'text' => '디바이스 메세지 수신용 토큰',
+        ]];
+
+        foreach($items as $item){
+            \App\Models\AppConfig::updateOrInsert(['id' => $item['id']], $item);
+        }
     }
 }

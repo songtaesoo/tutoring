@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-class SupportLanguageSeeder extends Seeder
+class SupportTypeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,18 +15,23 @@ class SupportLanguageSeeder extends Seeder
     {
         $items = [[
             'id' => 1,
-            'name' => '영어',
-            'code' => 'en',
+            'name' => '음성',
+            'type' => 'voice',
             'description' => '',
         ],[
             'id' => 2,
-            'name' => '중국어',
-            'code' => 'cn',
+            'name' => '화상',
+            'type' => 'video',
+            'description' => '',
+        ],[
+            'id' => 3,
+            'name' => '채팅',
+            'type' => 'chat',
             'description' => '',
         ]];
 
         foreach($items as $item){
-            \App\Models\SupportLanguage::updateOrInsert(['id' => $item['id']], $item);
+            \App\Models\SupportType::updateOrInsert(['id' => $item['id']], $item);
         }
     }
 }
