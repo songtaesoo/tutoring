@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('course_tickets', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('course_id')->unsigned()->nullable();
-            $table->bigInteger('user_id')->unsigned()->nullable();
+            $table->bigInteger('student_id')->unsigned()->nullable();
             $table->string('ticket_no', 100)->nullable()->comment('수강권 고유번호');
             $table->string('name', 100)->nullable()->comment('수강권명');
             $table->decimal('price', 10, 2)->default(0)->comment('수강권금액');
@@ -31,7 +31,7 @@ return new class extends Migration
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('user_id')->references('id')->on('users')
+            $table->foreign('student_id')->references('id')->on('students')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });

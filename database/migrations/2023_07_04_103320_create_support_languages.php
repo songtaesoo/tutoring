@@ -13,23 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('course_languages', function (Blueprint $table) {
+        Schema::create('support_languages', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('course_id')->unsigned()->nullable();
-            $table->bigInteger('language_id')->unsigned()->nullable();
-            $table->string('type', 20)->nullable()->comment('수업 언어타입');
+            $table->string('name', 20)->nullable()->comment('지원언어명');
+            $table->string('code', 10)->nullable()->comment('국가코드');
             $table->string('description', 1000)->nullable()->comment('비고');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
-
-            $table->foreign('course_id')->references('id')->on('courses')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
-
-            $table->foreign('language_id')->references('id')->on('support_languages')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
         });
     }
 
@@ -40,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('course_languages');
+        Schema::dropIfExists('support_languages');
     }
 };

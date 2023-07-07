@@ -16,14 +16,17 @@ return new class extends Migration
         Schema::create('course_types', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->bigInteger('course_id')->unsigned()->nullable();
-            $table->string('name', 20)->nullable()->comment('수업 종류명');
-            $table->string('type', 20)->nullable()->comment('종류');
+            $table->bigInteger('type_id')->unsigned()->nullable();
             $table->string('description', 1000)->nullable()->comment('비고');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
 
             $table->foreign('course_id')->references('id')->on('courses')
+                ->onDelete('set null')
+                ->onUpdate('cascade');
+
+            $table->foreign('type_id')->references('id')->on('support_types')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });
@@ -36,6 +39,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('course_type');
+        Schema::dropIfExists('course_types');
     }
 };

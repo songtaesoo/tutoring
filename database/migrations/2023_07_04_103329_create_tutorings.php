@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('tutorings', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('student_user_id')->unsigned()->nullable()->comment('학생 회원ID');
-            $table->bigInteger('tutor_user_id')->unsigned()->nullable()->comment('튜터 회원ID');
+            $table->bigInteger('student_id')->unsigned()->nullable()->comment('학생ID');
+            $table->bigInteger('tutor_id')->unsigned()->nullable()->comment('튜터ID');
             $table->bigInteger('course_id')->unsigned()->nullable()->comment('수강과정 ID');
             $table->enum('status', ['pending', 'processing', 'completed', 'disconnected', 'cancelled'])->default('pending')->comment('수업 상태');
             $table->timestamp('started_at')->nullable()->comment('수업시작 시간');
@@ -26,11 +26,11 @@ return new class extends Migration
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
 
-            $table->foreign('student_user_id')->references('user_id')->on('students')
+            $table->foreign('student_id')->references('id')->on('students')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('tutor_user_id')->references('user_id')->on('tutors')
+            $table->foreign('tutor_id')->references('id')->on('tutors')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 

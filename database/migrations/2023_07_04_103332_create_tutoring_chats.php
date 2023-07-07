@@ -26,14 +26,6 @@ return new class extends Migration
             $table->foreign('tutor_id')->references('id')->on('tutorings')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
-
-            $table->foreign('sender_id')->references('id')->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
-
-            $table->foreign('receipient_id')->references('id')->on('users')
-                ->onDelete('set null')
-                ->onUpdate('cascade');
         });
     }
 
