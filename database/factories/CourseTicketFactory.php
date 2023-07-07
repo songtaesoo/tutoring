@@ -3,6 +3,10 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\Course;
+use App\Models\Student;
+
+use Carbon\Carbon;
 
 class CourseTicketFactory extends Factory
 {

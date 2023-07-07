@@ -20,7 +20,7 @@ class CertificationFactory extends Factory
         return [
             'user_id' => User::inRandomOrder()->first()->id,
             'config_id' => AppConfig::where('value', 'aos_device_receive_token')->first()->id,
-            'value' => Str::random(200)
+            'value' => Str::random(100)
         ];
     }
 }

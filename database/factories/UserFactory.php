@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use App\Models\User;
 
 class UserFactory extends Factory
 {
@@ -15,23 +14,14 @@ class UserFactory extends Factory
      */
     public function definition()
     {
-        $userCount = User::all()->count();
-
-        if($userCount > 0 ){
-            $name = $this->faker->name();
-            $status = randomElement(['tutor', 'user']);
-        }else{
-            $name = 'Admin';
-            $status = 'admin';
-        }
-
         return [
-            'name' => $name,
+            'name' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'remember_token' => Str::random(10),
-            'status' => $status
+            'role' => $this->faker->randomElement(['tutor', 'student']),
+            'status' => $this->faker->randomElement(['active']),
+            'remember_token' => Str::random(10)
         ];
     }
 

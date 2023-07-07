@@ -21,9 +21,9 @@ class TutorFactory extends Factory
             'language_id' => SupportLanguage::inRandomOrder()->first()->id,
             'type_id' => SupportType::inRandomOrder()->first()->id,
             'name' => $this->faker->name,
-            'phone' => $this->faker->cellPhoneNumber,
+            'phone' => $this->faker->phoneNumber,
             'country' => '',
-            'type' => randomElement(['Global', 'Native']),
+            'type' => $this->faker->randomElement(['Global', 'Native']),
             'description' => ''
         ];
     }

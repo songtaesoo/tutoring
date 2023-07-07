@@ -7,6 +7,7 @@ use App\Models\Course;
 use App\Models\Student;
 use App\Models\Tutor;
 
+use Carbon\Carbon;
 class TutoringFactory extends Factory
 {
     /**
@@ -20,7 +21,7 @@ class TutoringFactory extends Factory
             'student_id' => Student::inRandomOrder()->first()->id,
             'tutor_id' => Tutor::inRandomOrder()->first()->id,
             'course_id' => Course::inRandomOrder()->first()->id,
-            'status' => randomElement(['pending', 'processing', 'completed', 'disconnected', 'cancelled']),
+            'status' => $this->faker->randomElement(['pending', 'processing', 'completed', 'disconnected', 'cancelled']),
             'started_at' => Carbon::now(),
             'ended_at' => Carbon::now()->addMonths(3),
             'description' => ''

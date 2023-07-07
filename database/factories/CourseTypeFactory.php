@@ -16,7 +16,7 @@ class CourseTypeFactory extends Factory
     public function definition()
     {
         return [
-            'course_id' => Course::inRandomOrder()->first()->id,,
+            'course_id' => Course::inRandomOrder()->first()->id,
             'type_id' => SupportType::inRandomOrder()->first()->id,
             'description' => ''
         ];

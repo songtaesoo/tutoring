@@ -17,7 +17,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('user_id')->unsigned()->nullable()->comment('회원ID');
             $table->bigInteger('config_id')->unsigned()->nullable()->comment('분류ID');
-            $table->text('category')->comment('값');
+            $table->text('value')->comment('값');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
