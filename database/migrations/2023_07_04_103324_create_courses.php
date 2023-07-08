@@ -19,6 +19,7 @@ return new class extends Migration
             $table->smallinteger('period')->unsigned()->nullable()->comment('수강 기간(월)');
             $table->smallinteger('time')->unsigned()->nullable()->comment('수업 시간(분)');
             $table->smallInteger('count')->unsigned()->nullable()->comment('수업 횟수');
+            $table->decimal('price', 10, 2)->default(0)->comment('금액');
             $table->boolean('is_sale')->nullable()->default(false)->comment('판매 상태');
             $table->timestamp('sale_started_at')->nullable()->comment('판매시작 기간');
             $table->timestamp('sale_ended_at')->nullable()->comment('판매종료 기간');

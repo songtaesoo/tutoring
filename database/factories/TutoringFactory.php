@@ -22,6 +22,7 @@ class TutoringFactory extends Factory
             'tutor_id' => Tutor::inRandomOrder()->first()->id,
             'course_id' => Course::inRandomOrder()->first()->id,
             'status' => $this->faker->randomElement(['pending', 'processing', 'completed', 'disconnected', 'cancelled', 'reserved']),
+            'type' => $this->faker->randomElement(['voice', 'video', 'chat']),
             'started_at' => $this->faker->dateTimeBetween('-2 hour', 'now'),
             'ended_at' => $this->faker->dateTimeBetween('-1 hour', 'now'),
             'description' => ''

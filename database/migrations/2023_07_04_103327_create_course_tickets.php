@@ -19,7 +19,6 @@ return new class extends Migration
             $table->bigInteger('student_id')->unsigned()->nullable();
             $table->string('ticket_no', 100)->nullable()->comment('수강권 고유번호');
             $table->string('name', 100)->nullable()->comment('수강권명');
-            $table->decimal('price', 10, 2)->default(0)->comment('수강권금액');
             $table->boolean('is_sale')->nullable()->default(false)->comment('판매상태');
             $table->timestamp('started_at')->nullable()->comment('수강시작기간');
             $table->timestamp('ended_at')->nullable()->comment('수강종료기간');

@@ -17,7 +17,6 @@ class CourseLanguageFactory extends Factory
     {
         return [
             'language_id' => SupportLanguage::inRandomOrder()->first()->id,
-            'type' => '',
             'description' => ''
         ];
     }

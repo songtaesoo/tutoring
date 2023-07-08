@@ -21,7 +21,6 @@ class CourseTicketFactory extends Factory
             'student_id' => Student::inRandomOrder()->first()->id,
             'ticket_no' => getRandomValue('string', 10),
             'name' => Course::inRandomOrder()->first()->name,
-            'price' => $this->faker->randomElement([30000, 90000, 12000, 120000, 354000]),
             'is_sale' => true,
             'started_at' => Carbon::now(),
             'ended_at' => Carbon::now()->addMonths(1),

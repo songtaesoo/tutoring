@@ -23,6 +23,7 @@ class CourseFactory extends Factory
             'period' => $this->faker->randomElement([3, 6]),
             'time' => $this->faker->randomElement([10, 15]),
             'count' => $this->faker->randomElement([30, 90]),
+            'price' => $this->faker->randomElement([30000, 90000, 12000, 120000, 354000]),
             'is_sale' => true,
             'sale_started_at' => Carbon::now(),
             'sale_ended_at' => Carbon::now()->addMonths(12)
