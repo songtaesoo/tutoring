@@ -18,7 +18,9 @@ class StudentFactory extends Factory
         $faker = Faker::create('ko_KR');
 
         return [
-            'user_id' => User::inRandomOrder()->where('role', 'student')->first()->id,
+            'user_id' => function () {
+                return User::factory()->create()->id;
+            },
             'name' => $faker->name,
             'phone' => '010-'.strval($faker->randomNumber(4)).'-'.strval($faker->randomNumber(4))
         ];

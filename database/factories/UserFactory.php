@@ -23,25 +23,10 @@ class UserFactory extends Factory
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'role' => $this->faker->randomElement(['tutor', 'student']),
+            // 'role' => $this->faker->randomElement(['tutor', 'student']),
             'status' => $this->faker->randomElement(['active']),
             'remember_token' => Str::random(10)
         ];
-    }
-
-    public function configure()
-    {
-        return $this->afterCreating(function (User $user) {
-            if($user->role == 'tutor' && !$user->tutor){
-                $user->tutor()->save(Tutor::factory()->make());
-            }else if($user->role == 'student' && !$user->student){
-                $user->student()->save(Student::factory()->make());
-            }
-
-            if ($user->certifications->isEmpty()) {
-                $user->certifications()->save(Certification::factory()->make());
-            }
-        });
     }
 
     /**

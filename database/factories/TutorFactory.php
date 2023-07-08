@@ -17,7 +17,9 @@ class TutorFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::inRandomOrder()->where('role', 'tutor')->first()->id,
+            'user_id' => function () {
+                return User::factory()->create()->id;
+            },
             'language_id' => SupportLanguage::inRandomOrder()->first()->id,
             'type_id' => SupportType::inRandomOrder()->first()->id,
             'name' => $this->faker->name,
