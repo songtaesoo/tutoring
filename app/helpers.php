@@ -8,29 +8,6 @@ use LaravelFCM\Facades\FCM;
 
 use Carbon\Carbon;
 
-function endecryption($action, $string, $key = '', $iv = ''){
-	$output = false;
-
-	$encrypt_method = "AES-256-CBC";
-	$secret_key = env('APP_KEY', 'secret key');
-	$secret_iv  = 'secret iv';
-
-	$key = hash('sha256', $secret_key);
-
-	$iv = substr(hash('sha256', $secret_iv), 0, 16);
-
-	//encryption
-	if( $action == 1) {
-		$output = openssl_encrypt($string, $encrypt_method, $key, 0, $iv);
-		$output = base64_encode($output);
-	}
-	//decryption
-	else if( $action == 2){
-		$output = openssl_decrypt(base64_decode($string), $encrypt_method, $key, 0, $iv);
-	}
-	return $output;
-}
-
 function getRandomValue($type, $length = 10){
 	$value = '';
 

@@ -6,6 +6,8 @@ use App\Models\Tutoring;
 use App\Models\Tutor;
 use App\Models\CourseTicket;
 use App\Models\TutoringMaterial;
+use App\Models\AppConfig;
+use App\Models\Certification;
 
 use Illuminate\Http\Request;
 
@@ -14,8 +16,7 @@ use Auth;
 use Exception;
 use Validator;
 use Carbon\Carbon;
-use Cloudinary\Cloudinary;
-use Cloudinary\Api\Upload\UploadApi;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TutoringController extends Controller
 {
@@ -55,7 +56,31 @@ class TutoringController extends Controller
             $now = Carbon::now();
 
             if($now->greaterThanOrEqualTo($courseTicket->ended_at) || Carbon::parse($courseTicket->started_at)->greaterThanOrEqualTo($now)){
-                return ['success' => false, 'message' => '사용할 수 없는 수강권입니다.'];
+                return ['success' => false, 'message' => '수강 가능 기간이 만료된 수강권입니다.'];
+            }
+
+            //수강횟수 확인
+            $history = Tutoring::where([
+                'student_id' => $user->id,
+                'course_id' => $courseTicket->id
+            ])
+            ->whereIn('status', ['completed', 'reserved'])
+            ->get();
+
+            if($courseTicket->count <= $history->count()){
+                return ['success' => false, 'message' => '수강가능 횟수가 초과되었습니다.'];
+            }
+
+            //진행중인 수업이 있는 경우 / 정상적으로 종료되지 않은 수업이 있는 경우
+            $pendingTutoring = Tutoring::where([
+                'student_id' => $user->id,
+                'course_id' => $courseTicket->id
+            ])
+            ->whereIn('status', ['pending'])
+            ->get();
+
+            if($pendingTutoring->count()){
+                throw new \Exception('진행 중인 수업이 이미 존재합니다.');
             }
 
             //튜터 확인
@@ -79,11 +104,16 @@ class TutoringController extends Controller
                 throw new \Exception('해당 수강권의 수업 방식을 지원하지 않는 튜터입니다.');
             }
 
+            //튜터 온라인 상태 확인
+            if($tutor->status != 'active'){
+                throw new \Exception('현재 수업 진행이 가능한 튜터를 선택해주세요.');
+            }
+
             //튜터가 이미 다른 수강생의 수업요청을 받고 있거나 진행하고 있는 경우
             $existTutoring = Tutoring::where([
                 'tutor_id' => $tutor->id
             ])
-            ->whereIn('status', ['pending', 'processing'])  //pending: 수업요청 | processing: 수업진행중 | completed: 수업종료 | disconnected: 연결종료 | cancelled: 수업취소 | reserved: 예약됨
+            ->whereIn('status', ['pending', 'processing'])  //pending: 수업요청 | processing: 수업진행중 | completed: 수업종료 | disconnected: 연결종료 | cancelled: 수업취소 | reserved: 예약수업
             ->first();
 
             if($existTutoring){
@@ -112,6 +142,7 @@ class TutoringController extends Controller
             $tutoring->status = 'pending';      //수업 요청 상태: 튜터가 수락하면 processing
             $tutoring->started_at = null;       //튜터가 수업 수락 시 시작시간 update
             $tutoring->ended_at = null;         //수업 종료 시 종료시간 update
+            $tutoring->type = $course->type->type;
 
             $result = $tutoring->save();
 
@@ -126,11 +157,41 @@ class TutoringController extends Controller
             $tutoringData = Tutoring::find($tutoring->id);
 
             //수업시작 이메일 전송
-            $user->sendEmailNotification('tutoring-start-result', $tutoringData);
+            $user->sendEmail('tutoring-start-result', $tutoringData);
 
             //튜터에게 이메일 전송
             $tutorUser = $tutor->user;
-            $user->sendEmailNotification('tutoring-start-request', $tutoringData);
+            $tutorUser->sendEmail('tutoring-start-request', $tutoringData);
+
+            //튜터에게 수업요청알림 PUSH 전송
+            $tokenConfig = AppConfig::where([
+                'category' => 'certifications',
+                'value' => 'aos_device_receive_token',
+            ]);
+
+            $token = Certification::where([
+                'user_id' => $user->id,
+                'config_id' => $tokenConfig->id
+            ])->orderBy('update_at', 'desc')->first();
+
+            if($token){
+                //FCM App push
+                fcmSendData([
+                    'data' => [
+                        'action' => 'tutoring-start-request'
+                    ],
+                    'token' => $token->value
+                ]);
+
+                fcmSendNotification([
+                    'title' => '수업 요청 알림',
+                    'content' => '['.$course->name.'] 수업 요청이 수업을 준비해주세요.',
+                    'data' => [
+                        'action' => 'tutoring-start-request'
+                    ],
+                    'token' => $token->value
+                ]);
+            }
 
             return $result;
         } catch (\Throwable $th) {
@@ -200,41 +261,73 @@ class TutoringController extends Controller
                 throw new \Exception('수업 종료 중 오류가 발생하였습니다.');
             }
 
-            DB::commit();
-
             //수업 종료 후 각 수업종류에서 생성된 파일 이메일 전송
             $studentUser = $tutoring->student->user;
 
-            $materials = TutoringMaterial::where('tutoring_id', $tutoring->id)->where('type', $tutoring->type)->first();
+            $uploadResult = null;
 
-            if ($request->hasFile('video')) {
-                $videoPath = $request->file('video')->getRealPath();
+            if($tutoring->type == 'video'){
+                if ($request->hasFile('video')) {
+                    $uploadResult = Cloudinary::uploadVideo($request->file('video')->getRealPath(), ['resource_type' => 'video']);
+                }
+            }else if($request->hasFile('audio')){
+                if ($request->hasFile('audio')) {
+                    $uploadResult = Cloudinary::upload($request->file('audio')->getRealPath(), ['resource_type' => 'auto']);
+                }
+            }else{
+                if ($request->hasFile('file')) {
+                    $uploadResult = Cloudinary::upload($request->file('file')->getRealPath(), ['resource_type' => 'auto', 'format' => 'txt']);
+                }
+            }
 
-                $uploadResult = Cloudinary::uploadVideo($videoPath, [
-                    'resource_type' => 'video',
-                ]);
+            $material = null;
 
-                // 업로드 결과에서 영상 파일의 URL 및 기타 정보 추출
-                $videoUrl = $uploadResult->getSecurePath();
-                $publicId = $uploadResult->getPublicId();
-                $format = $uploadResult->getExtension();
+            if(!is_null($uploadResult)){
+                //수업 내용 저장
+                $material = new TutoringMaterial();
 
-                // 영상 파일 정보를 데이터베이스에 저장하거나 필요한 곳에서 사용
-                // ...
+                $material->tutoring_id = $tutoring->id;
+                $material->url = $uploadResult->getSecurePath();
+                $material->public_id = $uploadResult->getSecurePath();
+                $material->format = $uploadResult->getSecurePath();
 
-                return response()->json([
-                    'video_url' => $videoUrl,
-                    'public_id' => $publicId,
-                    'format' => $format,
-                ]);
+                $result = $material->save();
+
+                if(!$result){
+                    throw new \Exception('수업 내용 저장 중 오류가 발생하였습니다.');
+                }
             }
 
             $data = [
                 'tutoring' => $tutoring,
-                'materials' => $$materials
+                'material' => $material
             ];
 
-            $studentUser->sendEmailNotification('tutoring-send-materials', $data);
+            if(!is_null($material)){
+                //수업결과 이메일 전송
+                $studentUser->sendEmail('tutoring-send-materials', $data);
+            }else{
+                //수업결과가 이메일로 전달되지 않았을 경우 담당부서에게 메세지 전달
+                $message = [
+                    '[TUTORING 알림]',
+                    '수업 결과 미전송 알림',
+                    '',
+                    '회원정보: '.$tutoring->student->name.'(ID:'.$studentUser->id.')',
+                    '강의정보: '.$tutoring->course->name.'(ID:'.$tutoring->course->id.')',
+                    '강의구분: '.$tutoring->type,
+                    '',
+                    'via '.env('APP_NAME', 'TUTORING').'_'.env('APP_ENV', 'unknown')
+                ];
+
+                $notify['text'] = implode( "\n", $message);
+
+                $bot = env('TELEGRAM_ALERT_BOT', '');
+                $chatId = env('TELEGRAM_PUSHER_ID', '');
+
+                sendTelegram($bot, $chatId, $notify);
+            }
+
+            DB::commit();
 
             $result = ['success' => true];
 

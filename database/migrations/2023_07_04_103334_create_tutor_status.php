@@ -13,17 +13,15 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tutoring_chats', function (Blueprint $table) {
+        Schema::create('tutor_status', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('tutoring_id')->unsigned()->nullable()->comment('강의ID');
-            $table->bigInteger('sender_id')->unsigned()->nullable()->comment('발신자ID');
-            $table->bigInteger('receipient_id')->unsigned()->nullable()->comment('수신자ID');
-            $table->text('message')->nullable()->comment('채팅 메세지');
+            $table->bigInteger('tutor_id')->unsigned()->nullable()->comment('튜터ID');
+            $table->string('status', 20)->nullable();
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
 
-            $table->foreign('tutoring_id')->references('id')->on('tutorings')
+            $table->foreign('tutor_id')->references('id')->on('tutors')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });
@@ -36,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tutoring_chats');
+        Schema::dropIfExists('tutor_status');
     }
 };
