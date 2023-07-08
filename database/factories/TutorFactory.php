@@ -18,13 +18,13 @@ class TutorFactory extends Factory
     {
         return [
             'user_id' => function () {
-                return User::factory()->create()->id;
+                return User::factory()->create(['role' => 'tutor'])->id;
             },
             'language_id' => SupportLanguage::inRandomOrder()->first()->id,
             'type_id' => SupportType::inRandomOrder()->first()->id,
             'name' => $this->faker->name,
             'phone' => $this->faker->phoneNumber,
-            'country' => $this->faker->randomElement(['en, ca, cn, kr, jp, vn']),
+            'country' => $this->faker->randomElement(['en', 'ca', 'cn', 'kr', 'jp', 'vn']),
             'type' => $this->faker->randomElement(['Global', 'Native']),
             'description' => ''
         ];

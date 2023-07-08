@@ -19,7 +19,7 @@ class StudentFactory extends Factory
 
         return [
             'user_id' => function () {
-                return User::factory()->create()->id;
+                return User::factory()->create(['role' => 'student'])->id;
             },
             'name' => $faker->name,
             'phone' => '010-'.strval($faker->randomNumber(4)).'-'.strval($faker->randomNumber(4))
