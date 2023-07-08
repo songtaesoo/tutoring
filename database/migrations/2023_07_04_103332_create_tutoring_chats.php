@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('tutoring_chats', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('tutor_id')->unsigned()->nullable()->comment('강의ID');
+            $table->bigInteger('tutoring_id')->unsigned()->nullable()->comment('강의ID');
             $table->bigInteger('sender_id')->unsigned()->nullable()->comment('발신자ID');
             $table->bigInteger('receipient_id')->unsigned()->nullable()->comment('수신자ID');
             $table->text('message')->nullable()->comment('채팅 메세지');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));
             $table->softDeletes();
 
-            $table->foreign('tutor_id')->references('id')->on('tutorings')
+            $table->foreign('tutoring_id')->references('id')->on('tutorings')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });

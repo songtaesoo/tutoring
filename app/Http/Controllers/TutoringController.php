@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tutoring;
 use App\Models\Tutor;
 use App\Models\CourseTicket;
+use App\Models\TutoringMaterial;
 
 use Illuminate\Http\Request;
 
@@ -13,6 +14,8 @@ use Auth;
 use Exception;
 use Validator;
 use Carbon\Carbon;
+use Cloudinary\Cloudinary;
+use Cloudinary\Api\Upload\UploadApi;
 
 class TutoringController extends Controller
 {
@@ -123,7 +126,11 @@ class TutoringController extends Controller
             $tutoringData = Tutoring::find($tutoring->id);
 
             //수업시작 이메일 전송
-            $user->sendEmailNotification($tutoringData);
+            $user->sendEmailNotification('tutoring-start-result', $tutoringData);
+
+            //튜터에게 이메일 전송
+            $tutorUser = $tutor->user;
+            $user->sendEmailNotification('tutoring-start-request', $tutoringData);
 
             return $result;
         } catch (\Throwable $th) {
@@ -157,8 +164,14 @@ class TutoringController extends Controller
 
         $validator = Validator::make($inputs, [
             'tutoring_id' => ['required', 'exist:tutoring,id'],
+            'video' => ['nullable', 'mimes:mp4', 'max:2048'],
+            'audio' => ['nullable', 'mimes:mp4,wav', 'max:2048'],
+            'file' => ['nullable', 'mimes:txt', 'max:2048']
         ], [
-            'tutoring_id' => '올바른 수업 정보가 아닙니다.'
+            'tutoring_id' => '올바른 수업 정보가 아닙니다.',
+            'video' => '녹화 파일의 형식이 맞지 않습니다.',
+            'audio' => '녹음 파일의 형식이 맞지 않습니다.',
+            'file' => '채팅내역 파일의 형식이 맞지 않습니다.'
         ], []);
 
         if($validator->fails()){
@@ -175,10 +188,10 @@ class TutoringController extends Controller
             ])->first();
 
             if(!$tutoring || $tutoring->status != 'processing'){
-                throw new \Exception('오류가 발생하였습니다.');
+                throw new \Exception('올바른 수업이 아닙니다.');
             }
 
-            $tutoring->status = 'completed';
+            $tutoring->status = 'completed';    //수업종료
             $tutoring->ended_at = Carbon::now();
 
             $result = $tutoring->save();
@@ -187,18 +200,43 @@ class TutoringController extends Controller
                 throw new \Exception('수업 종료 중 오류가 발생하였습니다.');
             }
 
-            $result = ['success' => true];
-
             DB::commit();
 
-            //이메일 발송 TODO
-            switch($tutoring->course){
+            //수업 종료 후 각 수업종류에서 생성된 파일 이메일 전송
+            $studentUser = $tutoring->student->user;
 
+            $materials = TutoringMaterial::where('tutoring_id', $tutoring->id)->where('type', $tutoring->type)->first();
+
+            if ($request->hasFile('video')) {
+                $videoPath = $request->file('video')->getRealPath();
+
+                $uploadResult = Cloudinary::uploadVideo($videoPath, [
+                    'resource_type' => 'video',
+                ]);
+
+                // 업로드 결과에서 영상 파일의 URL 및 기타 정보 추출
+                $videoUrl = $uploadResult->getSecurePath();
+                $publicId = $uploadResult->getPublicId();
+                $format = $uploadResult->getExtension();
+
+                // 영상 파일 정보를 데이터베이스에 저장하거나 필요한 곳에서 사용
+                // ...
+
+                return response()->json([
+                    'video_url' => $videoUrl,
+                    'public_id' => $publicId,
+                    'format' => $format,
+                ]);
             }
 
-            $data = [];
+            $data = [
+                'tutoring' => $tutoring,
+                'materials' => $$materials
+            ];
 
-            $user->sendEmailNotification($data);
+            $studentUser->sendEmailNotification('tutoring-send-materials', $data);
+
+            $result = ['success' => true];
 
             return $result;
         } catch (\Throwable $th) {

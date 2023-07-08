@@ -26,6 +26,10 @@ class Tutor extends Model
         return date_format($utc, 'Y-m-d H:i:s');
     }
 
+    public function user(){
+        return $this->belongsTo('App\Models\User');
+    }
+
     public function tutorings(){
         return $this->hasMany('App\Models\Tutoring');
     }

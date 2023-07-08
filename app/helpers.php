@@ -7,30 +7,6 @@ use LaravelFCM\Message\PayloadNotificationBuilder;
 use LaravelFCM\Facades\FCM;
 
 use Carbon\Carbon;
-use Keygen\Keygen;
-
-function generateNo($companyId = null){
-	if(!is_null($companyId)){
-		$ctm = Keygen::alphanum(24)->suffix($companyId)->generate();
-
-		return $ctm;
-	}else{
-		return null;
-	}
-}
-
-function checkRecaptcha($captcha) {
-	$secret = env('GOOGLE_RECAPTCHA_SECRET', '');
-	$ip = $_SERVER['REMOTE_ADDR'];
-	$secretLink = "https://www.google.com/recaptcha/api/siteverify?secret=";
-	$response = file_get_contents($secretLink.$secret."&response=".$captcha."&remoteip=".$ip);
-	$responseFin= json_decode($response,true);
-	if(intval($responseFin["success"]) != 1) {
-		return false;
-	} else {
-		return true;
-	}
-}
 
 function endecryption($action, $string, $key = '', $iv = ''){
 	$output = false;

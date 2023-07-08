@@ -54,7 +54,19 @@ class User extends Authenticatable
         return $this->hasMany('App\Models\Certification');
     }
 
-    public function sendEmailNotification(){
+    public function sendEmailNotification($type, $data){
+        switch($type){
+            //각각 메일 템플릿을 통해 전송
+            case 'tutoring-start-result':
+                break;
+            case 'tutoring-send-result-chat':
+                break;
+            case 'tutoring-send-result-file':
+                break;
+            case 'tutoring-start-request':
+                break;
+        }
+
         return true;
     }
 }
