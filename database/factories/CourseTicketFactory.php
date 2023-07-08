@@ -18,7 +18,6 @@ class CourseTicketFactory extends Factory
     public function definition()
     {
         return [
-            'course_id' => Course::inRandomOrder()->first()->id,
             'student_id' => Student::inRandomOrder()->first()->id,
             'ticket_no' => getRandomValue('string', 10),
             'name' => Course::inRandomOrder()->first()->name,

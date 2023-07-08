@@ -18,7 +18,6 @@ class CertificationFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::inRandomOrder()->first()->id,
             'config_id' => AppConfig::where('value', 'aos_device_receive_token')->first()->id,
             'value' => Str::random(100)
         ];

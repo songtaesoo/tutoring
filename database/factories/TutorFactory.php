@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 use App\Models\SupportLanguage;
 use App\Models\SupportType;
+use App\Models\Tutor;
+use App\Models\TutorStatus;
 
 class TutorFactory extends Factory
 {
@@ -25,8 +27,15 @@ class TutorFactory extends Factory
             'name' => $this->faker->name,
             'phone' => $this->faker->phoneNumber,
             'country' => $this->faker->randomElement(['en', 'ca', 'cn', 'kr', 'jp', 'vn']),
-            'type' => $this->faker->randomElement(['Global', 'Native']),
+            'type' => $this->faker->randomElement(['global', 'native']),
             'description' => ''
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Tutor $tutor) {
+            TutorStatus::factory()->create(['tutor_id' => $tutor['id']]);
+        });
     }
 }

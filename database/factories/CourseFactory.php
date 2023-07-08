@@ -19,7 +19,7 @@ class CourseFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->randomElement(['입문용 1대1 회화 연습', 'ㄱㅎ급용 1대1 회화 연습']),
+            'name' => $this->faker->randomElement(['입문자용 1대1 회화 연습', '중급자용 1대1 회화 연습']),
             'period' => $this->faker->randomElement([3, 6]),
             'time' => $this->faker->randomElement([10, 15]),
             'count' => $this->faker->randomElement([30, 90]),
@@ -32,9 +32,9 @@ class CourseFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (Course $course) {
-            $course->type()->save(CourseType::factory()->make());
-            $course->tickets()->save(CourseTicket::factory()->make());
-            $course->language()->save(CourseLanguage::factory()->make());
+            CourseType::factory()->create(['course_id' => $course['id']]);
+            CourseTicket::factory()->create(['course_id' => $course['id']]);
+            CourseLanguage::factory()->create(['course_id' => $course['id']]);
         });
     }
 }

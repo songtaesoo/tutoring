@@ -22,7 +22,7 @@ class StudentFactory extends Factory
                 return User::factory()->create(['role' => 'student'])->id;
             },
             'name' => $faker->name,
-            'phone' => '010-'.strval($faker->randomNumber(4)).'-'.strval($faker->randomNumber(4))
+            'phone' => '010-'.str_pad($faker->randomNumber(4), 4, '0', STR_PAD_LEFT).'-'.str_pad($faker->randomNumber(4), 4, '0', STR_PAD_LEFT)
         ];
     }
 }
