@@ -19,8 +19,8 @@ class CourseController extends Controller
         $validator = Validator::make($inputs, [
             'start' => ['numeric', 'min:0'],
             'limit' => ['numeric', 'min:0'],
-            'language' => ['string', 'nullable'],
-            'type' => ['string', 'nullable']
+            'language' => ['array', 'nullable'],
+            'type' => ['array', 'nullable']
         ], [
             'start' => '올바른 페이지를 조회해주세요',
             'limit' => '올바른 페이지를 조회해주세요',
@@ -34,22 +34,22 @@ class CourseController extends Controller
             return $result;
         }
 
-        $langCode = $inputs['language'] ?? null;
-        $type = $inputs['type'] ?? null;
+        $langCodes = $inputs['language'] ?? [];
+        $types = $inputs['type'] ?? [];
 
         //데이터 조회
-        $courses = Course::with(['course_types' => function ($query) use ($type){
-                $query->with(['type' => function ($q) use ($type){
-                    if(!is_null($type)){
-                        $q->where([
-                            'type' => $type
-                        ])->select('name', 'type');
+        $courses = Course::with(['course_types' => function ($query) use ($types){
+                $query->with(['type' => function ($q) use ($types){
+                    if(count($types)){
+                        $q->whereIn('type', $types);
                     }
+
+                    $q->select('name', 'type');
                 }]);
-            }])->with(['course_languages' => function ($query) use ($langCode){
-                $query->with(['type' => function ($q) use ($langCode){
-                    if(!is_null($langCode)){
-                        $q->where(['code' => $langCode]);
+            }])->with(['course_languages' => function ($query) use ($langCodes){
+                $query->with(['type' => function ($q) use ($langCodes){
+                    if(count($langCodes)){
+                        $q->whereIn('code', $langCodes);
                     }
 
                     $q->select('name', 'code');

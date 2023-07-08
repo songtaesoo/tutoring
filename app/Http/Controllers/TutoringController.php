@@ -8,12 +8,11 @@ use App\Models\CourseTicket;
 use App\Models\TutoringMaterial;
 use App\Models\AppConfig;
 use App\Models\Certification;
-
+use App\Models\TutorStatus;
 use Illuminate\Http\Request;
 
 use DB;
 use Auth;
-use Exception;
 use Validator;
 use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
@@ -22,6 +21,8 @@ class TutoringController extends Controller
 {
     public function tutoringStart(){
         //수업 시작
+        //보유한 수강권으로 튜터를 선택하여 수업 요청
+        //튜터 수락 시 수업 시작
         $request = request();
         $inputs = $request->inputs();
         $user = Auth::guard('api')->user();
@@ -142,17 +143,13 @@ class TutoringController extends Controller
             $tutoring->status = 'pending';      //수업 요청 상태: 튜터가 수락하면 processing
             $tutoring->started_at = null;       //튜터가 수업 수락 시 시작시간 update
             $tutoring->ended_at = null;         //수업 종료 시 종료시간 update
-            $tutoring->type = $course->type->type;
+            $tutoring->type = $course->type->type->type;
 
             $result = $tutoring->save();
 
             if(!$result){
                 throw new \Exception('수업 시작 중 오류가 발생하였습니다.');
             }
-
-            $result = ['success' => true];
-
-            DB::commit();
 
             $tutoringData = Tutoring::find($tutoring->id);
 
@@ -193,6 +190,10 @@ class TutoringController extends Controller
                 ]);
             }
 
+            $result = ['success' => true];
+
+            DB::commit();
+
             return $result;
         } catch (\Throwable $th) {
             $category = __METHOD__;
@@ -219,6 +220,8 @@ class TutoringController extends Controller
 
     public function tutoringEnd(){
         //수업 종료
+        //튜터가 수업종료
+        //수업종료되면 수업 상태 변경 / 튜터 상태 변경
         $request = request();
         $inputs = $request->inputs();
         $tutor = Auth::guard('api')->user();
@@ -259,6 +262,17 @@ class TutoringController extends Controller
 
             if(!$result){
                 throw new \Exception('수업 종료 중 오류가 발생하였습니다.');
+            }
+
+            //튜터 상태 변경
+            $tutorStatus = TutorStatus::where('tutor_id', $tutor->id)->first();
+
+            $tutorStatus->status = 'active';    //활성 상태
+
+            $statusResult = $tutorStatus->save();
+
+            if(!$statusResult){
+                throw new \Exception('튜터 상태 변경 중 오류가 발생하였습니다.');
             }
 
             //수업 종료 후 각 수업종류에서 생성된 파일 이메일 전송
