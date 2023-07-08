@@ -22,8 +22,5 @@ class DatabaseSeeder extends Seeder
         \App\Models\TutorStatus::factory(10)->create();
 
         \App\Models\Tutoring::factory(10)->create();
-        \App\Models\CourseType::factory(10)->create();
-        \App\Models\CourseTicket::factory(10)->create();
-        \App\Models\CourseLanguage::factory(10)->create();
     }
 }

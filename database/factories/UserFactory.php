@@ -38,7 +38,7 @@ class UserFactory extends Factory
                 $user->student()->save(Student::factory()->make());
             }
 
-            $user->certification()->save(Certification::factory()->make());
+            $user->certifications()->save(Certification::factory()->make());
         });
     }
 

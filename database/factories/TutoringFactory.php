@@ -22,8 +22,12 @@ class TutoringFactory extends Factory
             'tutor_id' => Tutor::inRandomOrder()->first()->id,
             'course_id' => Course::inRandomOrder()->first()->id,
             'status' => $this->faker->randomElement(['pending', 'processing', 'completed', 'disconnected', 'cancelled']),
-            'started_at' => Carbon::now(),
-            'ended_at' => Carbon::now()->addMonths(3),
+            'started_at' => $this->faker->optional(function ($value){
+                return in_array($value['status'], ['processing', 'completed', 'disconnected']);
+            })->dateTimeBetween('-1 hour', 'now'),
+            'ended_at' => $this->faker->optional(function ($value){
+                return in_array($value['status'], ['completed', 'cancelled', 'disconnected']);
+            })->dateTimeBetween('now', '+1 hour'),
             'description' => ''
         ];
     }
