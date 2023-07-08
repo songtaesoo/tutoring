@@ -15,7 +15,9 @@ class TutorStatusFactory extends Factory
     public function definition()
     {
         return [
-            'tutor_id' => Tutor::inRandomOrder()->first()->id,
+            'tutor_id' => function () {
+                return Tutor::factory()->create()->id;
+            },
             'status' => $this->faker->randomElement(['active', 'deactive', 'inClass'])
         ];
     }

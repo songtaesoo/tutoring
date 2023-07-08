@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Tutor;
 use App\Models\Student;
+use App\Models\Certification;
 
 class UserFactory extends Factory
 {
@@ -31,8 +32,13 @@ class UserFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (User $user) {
-            $user->tutor()->save(Tutor::factory()->make());
-            $user->student()->save(Student::factory()->make());
+            if($user->role == 'tutor'){
+                $user->tutor()->save(Tutor::factory()->make());
+            }else if($user->role == 'student'){
+                $user->student()->save(Student::factory()->make());
+            }
+
+            $user->certification()->save(Certification::factory()->make());
         });
     }
 
