@@ -32,13 +32,15 @@ class UserFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (User $user) {
-            if($user->role == 'tutor'){
+            if($user->role == 'tutor' && !$user->tutor){
                 $user->tutor()->save(Tutor::factory()->make());
-            }else if($user->role == 'student'){
+            }else if($user->role == 'student' && !$user->student){
                 $user->student()->save(Student::factory()->make());
             }
 
-            $user->certifications()->save(Certification::factory()->make());
+            if ($user->certifications->isEmpty()) {
+                $user->certifications()->save(Certification::factory()->make());
+            }
         });
     }
 
