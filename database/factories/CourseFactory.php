@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 use App\Models\Course;
-use App\Models\CourseType;
 use App\Models\CourseTicket;
-use App\Models\CourseLanguage;
+use App\Models\SupportLanguage;
+use App\Models\SupportType;
 
 class CourseFactory extends Factory
 {
@@ -19,6 +19,8 @@ class CourseFactory extends Factory
     public function definition()
     {
         return [
+            'type_id' => SupportType::inRandomOrder()->first()->id,
+            'language_id' => SupportLanguage::inRandomOrder()->first()->id,
             'name' => $this->faker->randomElement(['입문자용 1대1 회화 연습', '중급자용 1대1 회화 연습']),
             'period' => $this->faker->randomElement([3, 6]),
             'time' => $this->faker->randomElement([10, 15]),
@@ -33,9 +35,7 @@ class CourseFactory extends Factory
     public function configure()
     {
         return $this->afterCreating(function (Course $course) {
-            CourseType::factory()->create(['course_id' => $course['id']]);
             CourseTicket::factory()->create(['course_id' => $course['id']]);
-            CourseLanguage::factory()->create(['course_id' => $course['id']]);
         });
     }
 }

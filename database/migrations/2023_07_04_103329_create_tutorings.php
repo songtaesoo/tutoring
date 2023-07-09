@@ -17,9 +17,8 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('student_id')->unsigned()->nullable()->comment('학생ID');
             $table->bigInteger('tutor_id')->unsigned()->nullable()->comment('튜터ID');
-            $table->bigInteger('course_id')->unsigned()->nullable()->comment('수강과정 ID');
+            $table->bigInteger('ticket_id')->unsigned()->nullable()->comment('수강권ID');
             $table->enum('status', ['pending', 'processing', 'completed', 'disconnected', 'cancelled', 'reserved'])->default('pending')->comment('수업 상태');
-            $table->string('type', 20)->nullable()->comment('수업유형');
             $table->timestamp('started_at')->nullable()->comment('수업시작 시간');
             $table->timestamp('ended_at')->nullable()->comment('수업종료 시간');
             $table->string('description', 1000)->nullable()->comment('비고');
@@ -35,7 +34,7 @@ return new class extends Migration
                 ->onDelete('set null')
                 ->onUpdate('cascade');
 
-            $table->foreign('course_id')->references('id')->on('courses')
+            $table->foreign('ticket_id')->references('id')->on('course_tickets')
                 ->onDelete('set null')
                 ->onUpdate('cascade');
         });

@@ -20,10 +20,8 @@ class CourseTicketFactory extends Factory
         return [
             'student_id' => Student::inRandomOrder()->first()->id,
             'ticket_no' => getRandomValue('string', 10),
-            'name' => Course::inRandomOrder()->first()->name,
-            'is_sale' => true,
             'started_at' => Carbon::now(),
-            'ended_at' => Carbon::now()->addMonths(1),
+            'ended_at' => Carbon::now()->addMonths(1)
         ];
     }
 }

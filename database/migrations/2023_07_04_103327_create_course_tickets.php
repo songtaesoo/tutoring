@@ -18,8 +18,6 @@ return new class extends Migration
             $table->bigInteger('course_id')->unsigned()->nullable();
             $table->bigInteger('student_id')->unsigned()->nullable();
             $table->string('ticket_no', 100)->nullable()->comment('수강권 고유번호');
-            $table->string('name', 100)->nullable()->comment('수강권명');
-            $table->boolean('is_sale')->nullable()->default(false)->comment('판매상태');
             $table->timestamp('started_at')->nullable()->comment('수강시작기간');
             $table->timestamp('ended_at')->nullable()->comment('수강종료기간');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
