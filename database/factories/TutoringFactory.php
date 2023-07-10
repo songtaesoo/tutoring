@@ -3,9 +3,11 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\TutoringCalculation;
 use App\Models\CourseTicket;
 use App\Models\Student;
 use App\Models\Tutor;
+use App\Models\Tutoring;
 
 use Carbon\Carbon;
 class TutoringFactory extends Factory
@@ -26,5 +28,12 @@ class TutoringFactory extends Factory
             'ended_at' => $this->faker->dateTimeBetween('-1 hour', 'now'),
             'description' => ''
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function (Tutoring $tutoring) {
+            TutoringCalculation::factory()->create(['tutoring_id' => $tutoring['id']]);
+        });
     }
 }

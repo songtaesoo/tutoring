@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
 
 class Course extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'courses';
 
@@ -26,14 +28,18 @@ class Course extends Model
     }
 
     public function language(){
-        return $this->hasOne('App\Models\CourseLanguage');
+        return $this->belongsTo('App\Models\SupportLanguage');
     }
 
     public function type(){
-        return $this->hasOne('App\Models\CourseType');
+        return $this->belongsTo('App\Models\SupportType');
     }
 
     public function tickets(){
         return $this->hasMany('App\Models\CourseTicket');
+    }
+
+    public function payments(){
+        return $this->hasMany('App\Models\CoursePayment');
     }
 }

@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\CourseController;
+use App\Http\Controllers\TutoringController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -18,7 +20,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => 'auth:api', 'prefix' => 'api'], function (){
+Route::group(['middleware' => 'auth:api', 'prefix' => ''], function (){
     //수강과정
     Route::get('/courses', [CourseController::class, 'index']); //구매가능 수강과정 목록
 

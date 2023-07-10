@@ -22,6 +22,7 @@ return new class extends Migration
 			$table->timestamp('email_verified_at')->nullable()->comment('이메일 인증여부');
 			$table->enum('status', array('active', 'deactive'))->comment('계정상태');
 			$table->string('memo', 500)->nullable()->comment('비고');
+            $table->string('api_token', 500)->nullable();
             $table->rememberToken();
 			$table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

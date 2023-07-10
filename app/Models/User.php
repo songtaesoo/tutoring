@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -68,5 +71,17 @@ class User extends Authenticatable
         }
 
         return true;
+    }
+
+    public function getCreatedAtAttribute($value){
+        $utc = Carbon::parse($value)->timezone('UTC');
+
+        return date_format($utc, 'Y-m-d H:i:s');
+    }
+
+    public function getUpdatedAtAttribute($value){
+        $utc = Carbon::parse($value)->timezone('UTC');
+
+        return date_format($utc, 'Y-m-d H:i:s');
     }
 }

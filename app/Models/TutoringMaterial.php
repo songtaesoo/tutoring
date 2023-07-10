@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
-class CourseLanguage extends Model
+class TutoringMaterial extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'course_languages';
+    protected $table = 'tutoring_materials';
 
     public $timestamps = true;
 
@@ -26,7 +27,7 @@ class CourseLanguage extends Model
         return date_format($utc, 'Y-m-d H:i:s');
     }
 
-    public function language(){
-        return $this->hasOne('App\Models\SupportLanguage');
+    public function tutoring(){
+        return $this->belongsTo('App\Models\Tutoring');
     }
 }

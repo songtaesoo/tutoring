@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
 class Tutor extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'tutors';
 
@@ -35,10 +36,10 @@ class Tutor extends Model
     }
 
     public function language(){
-        return $this->hasOne('App\Models\SupportLanguage');
+        return $this->belongsTo('App\Models\SupportLanguage');
     }
 
-    public function types(){
-        return $this->hasMany('App\Models\SupportType');
+    public function type(){
+        return $this->belongsTo('App\Models\SupportType');
     }
 }

@@ -8,14 +8,15 @@ use App\Models\CourseTicket;
 use App\Models\TutoringMaterial;
 use App\Models\AppConfig;
 use App\Models\Certification;
-use App\Models\TutorStatus;
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 use DB;
 use Auth;
-use Validator;
 use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Symfony\Component\Console\Input\Input;
 
 class TutoringController extends Controller
 {
@@ -24,12 +25,12 @@ class TutoringController extends Controller
         //보유한 수강권으로 튜터를 선택하여 수업 요청
         //튜터 수락 시 수업 시작
         $request = request();
-        $inputs = $request->inputs();
+        $inputs = $request->input();
         $user = Auth::guard('api')->user();
 
         $validator = Validator::make($inputs, [
-            'ticket_no' => ['required', 'exist:course_tickets,ticket_no'],
-            'tutor_id' => ['required', 'exist:tutors,id']
+            'ticket_id' => ['required', 'exists:course_tickets,id'],
+            'tutor_id' => ['required', 'exists:tutors,id']
         ], [
             'ticket_no' => '올바른 수강권이 아닙니다.',
             'tutor_id' => '올바른 튜터가 아닙니다.'
@@ -42,66 +43,57 @@ class TutoringController extends Controller
         try {
             DB::beginTransaction();
 
-            //학생 수강권 보유 확인
-            $courseTicket = CourseTicket::where([
-                'ticket_no' => $inputs['ticket_no'],
-                'student_id' => $user->id,
-                'is_sale' => true
-            ])->first();
+            $now = Carbon::now();
 
-            if(!$courseTicket){
+            //학생 수강권 보유 확인
+            $courseTicket = CourseTicket::find($inputs['ticket_id']);
+
+            if(!$courseTicket || $courseTicket->student_id != $user->student->id){
                 return ['success' => false, 'message' => '사용 가능한 수강권이 아닙니다.'];
             }
 
             //학생 수강권 만료 확인
-            $now = Carbon::now();
-
             if($now->greaterThanOrEqualTo($courseTicket->ended_at) || Carbon::parse($courseTicket->started_at)->greaterThanOrEqualTo($now)){
                 return ['success' => false, 'message' => '수강 가능 기간이 만료된 수강권입니다.'];
             }
 
-            //수강횟수 확인
+            //잔여 수강횟수 확인
             $history = Tutoring::where([
                 'student_id' => $user->id,
-                'course_id' => $courseTicket->id
+                'ticket_id' => $courseTicket->id
             ])
             ->whereIn('status', ['completed', 'reserved'])
             ->get();
 
-            if($courseTicket->count <= $history->count()){
+            if($courseTicket->course->count <= $history->count()){
                 return ['success' => false, 'message' => '수강가능 횟수가 초과되었습니다.'];
             }
 
             //진행중인 수업이 있는 경우 / 정상적으로 종료되지 않은 수업이 있는 경우
             $pendingTutoring = Tutoring::where([
                 'student_id' => $user->id,
-                'course_id' => $courseTicket->id
+                'ticket_id' => $courseTicket->id
             ])
             ->whereIn('status', ['pending'])
             ->get();
 
             if($pendingTutoring->count()){
-                throw new \Exception('진행 중인 수업이 이미 존재합니다.');
+                return ['success' => false, 'message' => '진행 중인 수업이 이미 존재합니다.'];
             }
 
             //튜터 확인
-            $tutor = Tutor::with('language', 'types')->where('id', $inputs['tutor_id'])->first();
+            $tutor = Tutor::with('language', 'type')->where('id', $inputs['tutor_id'])->first();
 
             $course = $courseTicket->course ?? null;
             $tutorLang = $tutor->language ?? null;
-            $tutorLessonTypes = $tutor->types ?? [];
-
-            //데이터 참조 무결 확인
-            if(is_null($course) || is_null($tutorLang) || !$tutorLessonTypes->count()){
-                throw new \Exception('오류가 발생하였습니다.');
-            }
+            $tutorType = $tutor->type ?? null;
 
             //수강권의 구성과 튜터 지원하는 수업 일치 확인
-            if($course->language->code != $tutorLang->code){
+            if($tutorLang->code != $course->language->code){
                 throw new \Exception('해당 수강권의 수업 언어를 지원하지 않는 튜터입니다. ');
             }
 
-            if(!$tutorLessonTypes->contains('type', $course->type->type)){
+            if($tutorType->value != $course->type->value){
                 throw new \Exception('해당 수강권의 수업 방식을 지원하지 않는 튜터입니다.');
             }
 
@@ -125,6 +117,7 @@ class TutoringController extends Controller
             $scheduledTutoring = Tutoring::where([
                 'student_id' => $user->id,
                 'tutor_id' => $tutor->id,
+                'ticket_id' => $courseTicket->id,
                 'status' => 'reserved'
             ])
             ->whereBetween('started_at', [Carbon::today(), Carbon::today()->addDay()])
@@ -139,16 +132,23 @@ class TutoringController extends Controller
 
             $tutoring->student_id = $user->id;
             $tutoring->tutor_id = $tutor->id;
-            $tutoring->course_id = $course->id;
+            $tutoring->ticket_id = $courseTicket->id;
             $tutoring->status = 'pending';      //수업 요청 상태: 튜터가 수락하면 processing
             $tutoring->started_at = null;       //튜터가 수업 수락 시 시작시간 update
             $tutoring->ended_at = null;         //수업 종료 시 종료시간 update
-            $tutoring->type = $course->type->type->type;
 
             $result = $tutoring->save();
 
             if(!$result){
                 throw new \Exception('수업 시작 중 오류가 발생하였습니다.');
+            }
+
+            $tutor->status = 'inClass';
+
+            $tutorStatus = $tutor->save();
+
+            if(!$tutorStatus){
+                throw new \Exception('튜터 상태 변경 중 오류가 발생하였습니다.');
             }
 
             $tutoringData = Tutoring::find($tutoring->id);
@@ -164,15 +164,15 @@ class TutoringController extends Controller
             $tokenConfig = AppConfig::where([
                 'category' => 'certifications',
                 'value' => 'aos_device_receive_token',
-            ]);
+            ])->first();
 
             $token = Certification::where([
-                'user_id' => $user->id,
+                'user_id' => $tutorUser->id,
                 'config_id' => $tokenConfig->id
-            ])->orderBy('update_at', 'desc')->first();
+            ])->orderBy('updated_at', 'desc')->first();
 
-            if($token){
-                //FCM App push
+            if($token){        //구현코드만 작성
+                //FCM PUSH
                 fcmSendData([
                     'data' => [
                         'action' => 'tutoring-start-request'
@@ -182,7 +182,7 @@ class TutoringController extends Controller
 
                 fcmSendNotification([
                     'title' => '수업 요청 알림',
-                    'content' => '['.$course->name.'] 수업 요청이 수업을 준비해주세요.',
+                    'content' => '['.$course->name.'] 수업을 준비해주세요.',
                     'data' => [
                         'action' => 'tutoring-start-request'
                     ],
@@ -223,19 +223,19 @@ class TutoringController extends Controller
         //튜터가 수업종료
         //수업종료되면 수업 상태 변경 / 튜터 상태 변경
         $request = request();
-        $inputs = $request->inputs();
+        $inputs = $request->input();
         $tutor = Auth::guard('api')->user();
 
         $validator = Validator::make($inputs, [
-            'tutoring_id' => ['required', 'exist:tutoring,id'],
-            'video' => ['nullable', 'mimes:mp4', 'max:2048'],
-            'audio' => ['nullable', 'mimes:mp4,wav', 'max:2048'],
-            'file' => ['nullable', 'mimes:txt', 'max:2048']
+            'tutoring_id' => ['required', 'exists:tutorings,id'],
+            'video' => ['nullable', 'mimes:mp4', 'max:10240'],
+            'voice' => ['nullable', 'mimes:mp3,wav', 'max:10240'],
+            'chat' => ['nullable', 'mimes:txt', 'max:10240']
         ], [
             'tutoring_id' => '올바른 수업 정보가 아닙니다.',
             'video' => '녹화 파일의 형식이 맞지 않습니다.',
-            'audio' => '녹음 파일의 형식이 맞지 않습니다.',
-            'file' => '채팅내역 파일의 형식이 맞지 않습니다.'
+            'voice' => '녹음 파일의 형식이 맞지 않습니다.',
+            'chat' => '채팅내역 파일의 형식이 맞지 않습니다.'
         ], []);
 
         if($validator->fails()){
@@ -265,33 +265,32 @@ class TutoringController extends Controller
             }
 
             //튜터 상태 변경
-            $tutorStatus = TutorStatus::where('tutor_id', $tutor->id)->first();
+            $tutor = Tutor::find($tutor->id);
 
-            $tutorStatus->status = 'active';    //활성 상태
+            $tutor->status = 'active';
 
-            $statusResult = $tutorStatus->save();
+            $tutorStatusResult = $tutor->save();
 
-            if(!$statusResult){
+            if(!$tutorStatusResult){
                 throw new \Exception('튜터 상태 변경 중 오류가 발생하였습니다.');
             }
 
             //수업 종료 후 각 수업종류에서 생성된 파일 이메일 전송
             $studentUser = $tutoring->student->user;
+            $course = $tutoring->ticket->course;
 
             $uploadResult = null;
 
-            if($tutoring->type == 'video'){
-                if ($request->hasFile('video')) {
-                    $uploadResult = Cloudinary::uploadVideo($request->file('video')->getRealPath(), ['resource_type' => 'video']);
-                }
-            }else if($request->hasFile('audio')){
-                if ($request->hasFile('audio')) {
-                    $uploadResult = Cloudinary::upload($request->file('audio')->getRealPath(), ['resource_type' => 'auto']);
-                }
-            }else{
-                if ($request->hasFile('file')) {
-                    $uploadResult = Cloudinary::upload($request->file('file')->getRealPath(), ['resource_type' => 'auto', 'format' => 'txt']);
-                }
+            if ($request->hasFile('video')) {
+                $uploadResult = Cloudinary::uploadFile($request->file('video')->getRealPath());
+            }
+
+            if ($request->hasFile('voice')) {
+                $uploadResult = Cloudinary::uploadFile($request->file('voice')->getRealPath());
+            }
+
+            if ($request->hasFile('chat')) {
+                $uploadResult = Cloudinary::uploadFile($request->file('chat')->getRealPath());
             }
 
             $material = null;
@@ -302,8 +301,6 @@ class TutoringController extends Controller
 
                 $material->tutoring_id = $tutoring->id;
                 $material->url = $uploadResult->getSecurePath();
-                $material->public_id = $uploadResult->getSecurePath();
-                $material->format = $uploadResult->getSecurePath();
 
                 $result = $material->save();
 
@@ -312,13 +309,13 @@ class TutoringController extends Controller
                 }
             }
 
-            $data = [
-                'tutoring' => $tutoring,
-                'material' => $material
-            ];
-
             if(!is_null($material)){
                 //수업결과 이메일 전송
+                $data = [
+                    'tutoring' => $tutoring,
+                    'material' => $material
+                ];
+
                 $studentUser->sendEmail('tutoring-send-materials', $data);
             }else{
                 //수업결과가 이메일로 전달되지 않았을 경우 담당부서에게 메세지 전달
@@ -327,8 +324,8 @@ class TutoringController extends Controller
                     '수업 결과 미전송 알림',
                     '',
                     '회원정보: '.$tutoring->student->name.'(ID:'.$studentUser->id.')',
-                    '강의정보: '.$tutoring->course->name.'(ID:'.$tutoring->course->id.')',
-                    '강의구분: '.$tutoring->type,
+                    '강의정보: '.$course->name.'(ID:'.$course->id.')',
+                    '강의구분: '.$course->type->value,
                     '',
                     'via '.env('APP_NAME', 'TUTORING').'_'.env('APP_ENV', 'unknown')
                 ];

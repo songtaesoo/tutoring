@@ -17,8 +17,6 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('tutoring_id')->unsigned()->nullable()->comment('강의ID');
             $table->text('url')->nullable();
-            $table->text('path')->nullable();
-            $table->text('format')->nullable();
             $table->string('description', 100)->nullable()->comment('비고');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->timestamp('updated_at')->default(DB::raw('CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'));

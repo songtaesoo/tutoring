@@ -16,18 +16,18 @@ class SupportTypeSeeder extends Seeder
         $items = [[
             'id' => 1,
             'name' => '음성',
-            'type' => 'voice',
-            'description' => '',
+            'value' => 'voice',
+            'description' => ''
         ],[
             'id' => 2,
             'name' => '화상',
-            'type' => 'video',
-            'description' => '',
+            'value' => 'video',
+            'description' => ''
         ],[
             'id' => 3,
             'name' => '채팅',
-            'type' => 'chat',
-            'description' => '',
+            'value' => 'chat',
+            'description' => ''
         ]];
 
         foreach($items as $item){

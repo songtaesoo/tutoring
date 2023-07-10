@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 use App\Models\Course;
 use App\Models\CourseTicket;
+use App\Models\CoursePayment;
 use App\Models\SupportLanguage;
 use App\Models\SupportType;
 
@@ -26,6 +27,7 @@ class CourseFactory extends Factory
             'time' => $this->faker->randomElement([10, 15]),
             'count' => $this->faker->randomElement([30, 90]),
             'price' => $this->faker->randomElement([30000, 90000, 12000, 120000, 354000]),
+            'sort' => $this->faker->unique()->randomDigit,
             'is_sale' => true,
             'sale_started_at' => Carbon::now(),
             'sale_ended_at' => Carbon::now()->addMonths(12)
@@ -36,6 +38,7 @@ class CourseFactory extends Factory
     {
         return $this->afterCreating(function (Course $course) {
             CourseTicket::factory()->create(['course_id' => $course['id']]);
+            CoursePayment::factory()->create(['course_id' => $course['id']]);
         });
     }
 }

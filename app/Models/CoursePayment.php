@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Carbon\Carbon;
 
-class TutorStatus extends Model
+class CoursePayment extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'tutor_status';
+    protected $table = 'course_payments';
 
     public $timestamps = true;
 
@@ -26,7 +27,11 @@ class TutorStatus extends Model
         return date_format($utc, 'Y-m-d H:i:s');
     }
 
-    public function tutor(){
-        return $this->belongsTo('App\Models\Tutor');
+    public function course(){
+        return $this->belongsTo('App\Models\Course');
+    }
+
+    public function student(){
+        return $this->belongsTo('App\Models\Student');
     }
 }
