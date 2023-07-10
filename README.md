@@ -9,18 +9,18 @@
 
 ## Tutoring Backend 사전과제
 
-사용한 도구
+1. 사용 도구
 - Laravel 8
 - MySQL
 - Composer
 - Postman
 
-사용한 기술
+2. 사용 기술
 - Laravel Migrate RDB 설계
 - Laravel Factory DB 생성
 - Service Layer 패턴 API 작성
 
-사용한 외부패키지
+3. 사용 외부패키지
 - Cloudniary 파일 저장
 - Telegram 메세지 전송
 - FCM PUSH 알림 기능 추가
