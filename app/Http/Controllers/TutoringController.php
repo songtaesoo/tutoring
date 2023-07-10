@@ -16,7 +16,6 @@ use DB;
 use Auth;
 use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Symfony\Component\Console\Input\Input;
 
 class TutoringController extends Controller
 {
