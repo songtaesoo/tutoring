@@ -25,8 +25,7 @@ class TutoringFactory extends Factory
             'ticket_id' => CourseTicket::inRandomOrder()->first()->id,
             'status' => $this->faker->randomElement(['pending', 'processing', 'completed', 'disconnected', 'cancelled', 'reserved']),
             'started_at' => $this->faker->dateTimeBetween('-2 hour', 'now'),
-            'ended_at' => $this->faker->dateTimeBetween('-1 hour', 'now'),
-            'description' => ''
+            'ended_at' => $this->faker->dateTimeBetween('-1 hour', 'now')
         ];
     }
 

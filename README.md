@@ -7,25 +7,29 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+## Tutoring Backend 사전과제
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel 8, MySQL, Composer, Postman
+- Laravel Migrate RDB 설계, Laravel Factory DB 생성, Service Layer 패턴 API 작성
+- Cloudniary 파일 저장, Telegram 메세지 전송, FCM PUSH 알림 기능 추가
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 요구사항 이외 추가 고려 설계
 
-## Learning Laravel
+- 튜터링 지원 언어 확장가능성
+- 관리자/튜터 알림 전송
+- 튜터링 앱 유저 설정기능
+- 튜터 수업내역 기반 정산
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 기타 전달 내용
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- 프로세스 이해
+
+1. 튜터와 학생이 회원가입하여 각각 유저로 존재
+2. 학생이 관리자가 생성한 수강 과정을 조회하여 수강권 구매
+3. 수강권을 보유한 학생이 현재 수업 진행이 가능한 튜터 선택 후 수업 요청
+4. 튜터가 수업요청 알림 확인 후 수업시작
+5. 튜터가 수업종료 후 수업 결과 메일 전송
 
 ## Laravel Sponsors
 

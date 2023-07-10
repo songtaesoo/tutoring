@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('name', 50)->nullable()->comment('이름');
             $table->string('phone', 20)->nullable()->comment('연락처');
             $table->string('country', 50)->nullable()->comment('국적');
-            $table->string('type', 30)->nullable()->comment('타입'); //global or native
+            $table->string('country_type', 30)->nullable()->comment('타입'); //global or native
             $table->string('status', 20)->nullable()->comment('상태');
             $table->text('description')->nullable()->comment('강사소개');
             $table->timestamp('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));

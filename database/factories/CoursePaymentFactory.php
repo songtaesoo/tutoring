@@ -21,8 +21,7 @@ class CoursePaymentFactory extends Factory
             'amount' => $this->faker->randomElement([30000, 40000, 320000, 180000, 1231000]),
             'provider' => $this->faker->randomElement(['card', 'account', 'easy']),
             'auth_no' => $this->faker->unique()->numerify('######'),
-            'payment_at' => $this->faker->dateTimeBetween('-2 hour', 'now'),
-            'description' => ''
+            'payment_at' => $this->faker->dateTimeBetween('-2 hour', 'now')
         ];
     }
 }

@@ -28,8 +28,7 @@ class TutorFactory extends Factory
             'phone' => $this->faker->phoneNumber,
             'status' => $this->faker->randomElement(['active', 'deactive', 'inClass']),
             'country' => $this->faker->randomElement(['en', 'ca', 'cn', 'kr', 'jp', 'vn']),
-            'type' => $this->faker->randomElement(['global', 'native']),
-            'description' => ''
+            'country_type' => $this->faker->randomElement(['global', 'native'])
         ];
     }
 }

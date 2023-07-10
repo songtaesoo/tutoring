@@ -6,19 +6,24 @@ use App\Models\Tutoring;
 use App\Models\Tutor;
 use App\Models\CourseTicket;
 use App\Models\TutoringMaterial;
-use App\Models\AppConfig;
-use App\Models\Certification;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use App\Services\TutoringService;
 
 use DB;
 use Auth;
-use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class TutoringController extends Controller
 {
+    protected $tutoringService;
+
+    public function __construct(TutoringService $tutoringService)
+    {
+        $this->tutoringService = $tutoringService;
+    }
+
     public function tutoringStart(){
         //수업 시작
         //보유한 수강권으로 튜터를 선택하여 수업 요청
@@ -42,88 +47,29 @@ class TutoringController extends Controller
         try {
             DB::beginTransaction();
 
-            $now = Carbon::now();
-
             //학생 수강권 보유 확인
             $courseTicket = CourseTicket::find($inputs['ticket_id']);
 
-            if(!$courseTicket || $courseTicket->student_id != $user->student->id){
-                return ['success' => false, 'message' => '사용 가능한 수강권이 아닙니다.'];
-            }
+            $checkResult = $this->tutoringService->checkCourseTicket($courseTicket, $user);
 
-            //학생 수강권 만료 확인
-            if($now->greaterThanOrEqualTo($courseTicket->ended_at) || Carbon::parse($courseTicket->started_at)->greaterThanOrEqualTo($now)){
-                return ['success' => false, 'message' => '수강 가능 기간이 만료된 수강권입니다.'];
-            }
-
-            //잔여 수강횟수 확인
-            $history = Tutoring::where([
-                'student_id' => $user->id,
-                'ticket_id' => $courseTicket->id
-            ])
-            ->whereIn('status', ['completed', 'reserved'])
-            ->get();
-
-            if($courseTicket->course->count <= $history->count()){
-                return ['success' => false, 'message' => '수강가능 횟수가 초과되었습니다.'];
-            }
-
-            //진행중인 수업이 있는 경우 / 정상적으로 종료되지 않은 수업이 있는 경우
-            $pendingTutoring = Tutoring::where([
-                'student_id' => $user->id,
-                'ticket_id' => $courseTicket->id
-            ])
-            ->whereIn('status', ['pending'])
-            ->get();
-
-            if($pendingTutoring->count()){
-                return ['success' => false, 'message' => '진행 중인 수업이 이미 존재합니다.'];
+            if(!$checkResult['success']){
+                return $checkResult;
             }
 
             //튜터 확인
             $tutor = Tutor::with('language', 'type')->where('id', $inputs['tutor_id'])->first();
 
-            $course = $courseTicket->course ?? null;
-            $tutorLang = $tutor->language ?? null;
-            $tutorType = $tutor->type ?? null;
+            $checkResult = $this->tutoringService->checkTutor($courseTicket, $tutor);
 
-            //수강권의 구성과 튜터 지원하는 수업 일치 확인
-            if($tutorLang->code != $course->language->code){
-                throw new \Exception('해당 수강권의 수업 언어를 지원하지 않는 튜터입니다. ');
+            if(!$checkResult['success']){
+                return $checkResult;
             }
 
-            if($tutorType->value != $course->type->value){
-                throw new \Exception('해당 수강권의 수업 방식을 지원하지 않는 튜터입니다.');
-            }
+            //중복 가능성 확인
+            $checkResult = $this->tutoringService->checkDuplicateTutoring($courseTicket, $tutor, $user);
 
-            //튜터 온라인 상태 확인
-            if($tutor->status != 'active'){
-                throw new \Exception('현재 수업 진행이 가능한 튜터를 선택해주세요.');
-            }
-
-            //튜터가 이미 다른 수강생의 수업요청을 받고 있거나 진행하고 있는 경우
-            $existTutoring = Tutoring::where([
-                'tutor_id' => $tutor->id
-            ])
-            ->whereIn('status', ['pending', 'processing'])  //pending: 수업요청 | processing: 수업진행중 | completed: 수업종료 | disconnected: 연결종료 | cancelled: 수업취소 | reserved: 예약수업
-            ->first();
-
-            if($existTutoring){
-                return ['success' => false, 'message' => '튜터가 다른 수강생의 수업을 진행하고 있습니다. 튜터를 선택해주세요.'];
-            }
-
-            //금일 예약된 수업이 이미 있는지 확인
-            $scheduledTutoring = Tutoring::where([
-                'student_id' => $user->id,
-                'tutor_id' => $tutor->id,
-                'ticket_id' => $courseTicket->id,
-                'status' => 'reserved'
-            ])
-            ->whereBetween('started_at', [Carbon::today(), Carbon::today()->addDay()])
-            ->first();
-
-            if($scheduledTutoring){
-                return ['success' => false, 'message' => '이미 튜터와 예약 수업이 존재합니다.'];
+            if(!$checkResult['success']){
+                return $checkResult;
             }
 
             //수업 시작
@@ -142,51 +88,34 @@ class TutoringController extends Controller
                 throw new \Exception('수업 시작 중 오류가 발생하였습니다.');
             }
 
-            $tutor->status = 'inClass';
+            //튜터 상태변경
+            $updateResult = $this->tutoringService->changeTutorStatus($tutor, 'inClass');
 
-            $tutorStatus = $tutor->save();
-
-            if(!$tutorStatus){
-                throw new \Exception('튜터 상태 변경 중 오류가 발생하였습니다.');
+            if(!$updateResult['success']){
+                throw new \Exception($updateResult['message']);
             }
 
             $tutoringData = Tutoring::find($tutoring->id);
 
-            //수업시작 이메일 전송
-            $user->sendEmail('tutoring-start-result', $tutoringData);
+            //학생에게 수업시작 전 이메일 전송
+            $transferResult = $this->tutoringService->sendEmail($user, $tutoringData, 'tutoring-start-result');
 
-            //튜터에게 이메일 전송
-            $tutorUser = $tutor->user;
-            $tutorUser->sendEmail('tutoring-start-request', $tutoringData);
+            if(!$transferResult['success']){
+                throw new \Exception($transferResult['message']);
+            }
 
-            //튜터에게 수업요청알림 PUSH 전송
-            $tokenConfig = AppConfig::where([
-                'category' => 'certifications',
-                'value' => 'aos_device_receive_token',
-            ])->first();
+            //튜터에게 수업시작 준비 이메일 전송
+            $transferResult = $this->tutoringService->sendEmail($tutor->user, $tutoringData, 'tutoring-start-request');
 
-            $token = Certification::where([
-                'user_id' => $tutorUser->id,
-                'config_id' => $tokenConfig->id
-            ])->orderBy('updated_at', 'desc')->first();
+            if(!$transferResult['success']){
+                throw new \Exception($transferResult['message']);
+            }
 
-            if($token){        //구현코드만 작성
-                //FCM PUSH
-                fcmSendData([
-                    'data' => [
-                        'action' => 'tutoring-start-request'
-                    ],
-                    'token' => $token->value
-                ]);
+            //튜터에게 PUSH 앱 알림
+            $transferResult = $this->tutoringService->sendFCM($tutor->user, $tutoringData, 'tutoring-start-request');
 
-                fcmSendNotification([
-                    'title' => '수업 요청 알림',
-                    'content' => '['.$course->name.'] 수업을 준비해주세요.',
-                    'data' => [
-                        'action' => 'tutoring-start-request'
-                    ],
-                    'token' => $token->value
-                ]);
+            if(!$transferResult['success']){
+                throw new \Exception($transferResult['message']);
             }
 
             $result = ['success' => true];
@@ -254,24 +183,18 @@ class TutoringController extends Controller
                 throw new \Exception('올바른 수업이 아닙니다.');
             }
 
-            $tutoring->status = 'completed';    //수업종료
-            $tutoring->ended_at = Carbon::now();
+            //수업 상태변경
+            $updateResult = $this->tutoringService->changeTutoringStatus($tutoring, 'completed');
 
-            $result = $tutoring->save();
-
-            if(!$result){
-                throw new \Exception('수업 종료 중 오류가 발생하였습니다.');
+            if(!$updateResult['success']){
+                throw new \Exception($updateResult['message']);
             }
 
-            //튜터 상태 변경
-            $tutor = Tutor::find($tutor->id);
+            //튜터 상태변경
+            $updateResult = $this->tutoringService->changeTutorStatus($tutor, 'active');
 
-            $tutor->status = 'active';
-
-            $tutorStatusResult = $tutor->save();
-
-            if(!$tutorStatusResult){
-                throw new \Exception('튜터 상태 변경 중 오류가 발생하였습니다.');
+            if(!$updateResult['success']){
+                throw new \Exception($updateResult['message']);
             }
 
             //수업 종료 후 각 수업종류에서 생성된 파일 이메일 전송
@@ -315,7 +238,12 @@ class TutoringController extends Controller
                     'material' => $material
                 ];
 
-                $studentUser->sendEmail('tutoring-send-materials', $data);
+                //학생에게 수업결과 이메일 전송
+                $transferResult = $this->tutoringService->sendEmail($studentUser, $data, 'tutoring-send-materials');
+
+                if(!$transferResult['success']){
+                    throw new \Exception($transferResult['message']);
+                }
             }else{
                 //수업결과가 이메일로 전달되지 않았을 경우 담당부서에게 메세지 전달
                 $message = [
@@ -329,12 +257,12 @@ class TutoringController extends Controller
                     'via '.env('APP_NAME', 'TUTORING').'_'.env('APP_ENV', 'unknown')
                 ];
 
-                $notify['text'] = implode( "\n", $message);
+                //학생에게 수업결과 이메일 전송
+                $transferResult = $this->tutoringService->sendTelegram($message);
 
-                $bot = env('TELEGRAM_ALERT_BOT', '');
-                $chatId = env('TELEGRAM_PUSHER_ID', '');
-
-                sendTelegram($bot, $chatId, $notify);
+                if(!$transferResult['success']){
+                    throw new \Exception($transferResult['message']);
+                }
             }
 
             DB::commit();
