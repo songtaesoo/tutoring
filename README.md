@@ -9,27 +9,43 @@
 
 ## Tutoring Backend 사전과제
 
-- Laravel 8, MySQL, Composer, Postman
-- Laravel Migrate RDB 설계, Laravel Factory DB 생성, Service Layer 패턴 API 작성
-- Cloudniary 파일 저장, Telegram 메세지 전송, FCM PUSH 알림 기능 추가
+사용한 도구
+- Laravel 8
+- MySQL
+- Composer
+- Postman
+
+사용한 기술
+- Laravel Migrate RDB 설계
+- Laravel Factory DB 생성
+- Service Layer 패턴 API 작성
+
+사용한 외부패키지
+- Cloudniary 파일 저장
+- Telegram 메세지 전송
+- FCM PUSH 알림 기능 추가
 
 
 ## 요구사항 이외 추가 고려 설계
 
-- 튜터링 지원 언어 확장가능성
-- 관리자/튜터 알림 전송
-- 튜터링 앱 유저 설정기능
-- 튜터 수업내역 기반 정산
+- 튜터링 지원 언어 확장가능성을 고려하여 DB 설계
+- 관리자/튜터에게 각각 알림을 전송할 수 있는 기능 추가
+- 튜터링 앱 내 회원들의 앱설정 기능을 고려하여 테이블 추가
+- 튜터들이 수업내역 기반으로 정산을 받을 수 있도록 정산테이블 추가
 
 ## 기타 전달 내용
 
-- 프로세스 이해
+- 프로젝트 환경설정 방법
 
-1. 튜터와 학생이 회원가입하여 각각 유저로 존재
-2. 학생이 관리자가 생성한 수강 과정을 조회하여 수강권 구매
-3. 수강권을 보유한 학생이 현재 수업 진행이 가능한 튜터 선택 후 수업 요청
-4. 튜터가 수업요청 알림 확인 후 수업시작
-5. 튜터가 수업종료 후 수업 결과 메일 전송
+1. 프로젝트 다운로드 후 composer install 명령어를 실행하여 composer를 설치합니다.
+2. .env 파일을 추가한 뒤 php artisan key:generate 명령어를 통해 APP_KEY를 생성하고 DB 환경에 맞게 값을 설정합니다.
+3. php artisan migrate와 php artisan db:seed 명령어를 실행하여 데이터베이스 테이블과 더미데이터를 생성합니다.
+4. php artisan serve 명령어로 로컬환경에서 서버를 가동합니다.
+
+- 제약사항
+
+1. 프로젝트 내 사용된 외부패키지(Cloudinary, Telegram, FCM)를 사용하기 위해서 각 KEY값이 필요합니다.
+
 
 ## Laravel Sponsors
 
